@@ -51,7 +51,7 @@ limit 5
 
 ## Getting data from jsonb fields
 
-There are 2 operators that are relavant here: `->` and `->>`
+There are 3 operators that are relavant here: `->` , `->>` and`@>`
 
 The difference is that `->` returns values as JSON and `->>` extracts the value from the JSON as text **always**, even if the json is a boolean or an integer.
 
@@ -62,6 +62,13 @@ SELECT
 
 If you need the value as any other type you need to cast it manually
 
+The `@>` operator can be read as "contains". For example the following query reads as "give me all customer that have dark theme as a preference"
+
+```sql
+select customer_id, preferences from customer
+where prefereces @> '{"theme": "dark}'
+```
+ 
 ### jsonb_path_query
 
 This is a way to query jsonb columns without having to use `-> / ->>`

@@ -8,7 +8,7 @@
 
 `Map` delegates _branch_ the pipeline. What does this mean? It means once it's hit, it's executed on the side and the pipeline of middlewares no longer matters.
 
-Within this branching strategy you 2 types of mapping delegates: `MapWhen` and `UseWhen`. `MapWhen` works the same as `Map` with the exception it takes a predicate. `UseWhen` also users a predicate and is useful because it's *re-joins* the middleware pipeline after executed.
+Within this branching strategy you 2 types of mapping delegates: `MapWhen` and `UseWhen`. `MapWhen` works the same as `Map` with the exception it takes a predicate. `UseWhen` also uses a predicate and is useful because it's *re-joins* the middleware pipeline after executed.
 # Middleware Order
 
 Remember middleware execution goes "up and down". When a request comes in it goes through all the middlewares until its handled and then back up through all the same middlewares again. Therefore, with middlewares, ORDER MATTERS!
@@ -16,11 +16,11 @@ Remember middleware execution goes "up and down". When a request comes in it goe
 This behaviour means 2 things:
 
 - The global exception handler middleware needs to be the first registered because (next line)
--  If an exception is thrown along the middleware chain it's bubbles up to the exception handler middleware
+- If an exception is thrown along the middleware chain it's bubbles up to the exception handler middleware
 
 Other things to take into account:
 
-Static file middleware - this should be called early in the pipeline so that it can short circuit request without going through the pipeline. Also this middle is **unauthenticated!** Any files served under this middleware are publicly available
+Static file middleware - this should be called early in the pipeline so that it can short circuit request without going through the pipeline. Also this middleware is **unauthenticated!** Any files served under this middleware are publicly available
 
 Your custom middleware always runs after .NET build in middleware EXCEPT the `Endpoint` middleware (your route handlers essentially)
 

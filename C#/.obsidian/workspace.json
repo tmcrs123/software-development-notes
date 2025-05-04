@@ -70,12 +70,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Things to try.md",
+                "file": "OOP.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Things to try"
+              "title": "OOP"
             }
           }
         ],
@@ -228,18 +228,21 @@
   },
   "active": "d097ec91de5f3b20",
   "lastOpenFiles": [
-    "Dotnet/Notes.md",
-    "Dotnet/Pasted image 20250413161132.png",
     "Things to try.md",
-    "LINQ.md",
+    "Untitled.md",
+    "Dotnet/Testing.md",
+    "Dotnet/Notes.md",
+    "Mid-to-Advanced Roadmap.md",
     "OOP.md",
     "Language and Syntax.md",
-    "RabbitMq Overview.md",
-    "JSON and XML Serialization.md",
-    "Access Modifiers.md",
+    "Dates.md",
     "Currency.md",
     "By reference Vs By value.md",
-    "Dates.md",
+    "Access Modifiers.md",
+    "Dotnet/Pasted image 20250413161132.png",
+    "LINQ.md",
+    "RabbitMq Overview.md",
+    "JSON and XML Serialization.md",
     "Waters.md",
     "Waters 1.md",
     "Dotnet",
