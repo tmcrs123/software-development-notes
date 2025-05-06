@@ -70,12 +70,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "OOP.md",
+                "file": "Things to try.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "OOP"
+              "title": "Things to try"
             }
           }
         ],
@@ -228,12 +228,12 @@
   },
   "active": "d097ec91de5f3b20",
   "lastOpenFiles": [
+    "OOP.md",
     "Things to try.md",
     "Untitled.md",
     "Dotnet/Testing.md",
     "Dotnet/Notes.md",
     "Mid-to-Advanced Roadmap.md",
-    "OOP.md",
     "Language and Syntax.md",
     "Dates.md",
     "Currency.md",

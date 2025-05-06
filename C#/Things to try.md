@@ -6,6 +6,7 @@ events
 delegates
 asyncLocal
 SignalR
+Sagas Pattern
 EntityFramework
 https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/async-scenarios
 
