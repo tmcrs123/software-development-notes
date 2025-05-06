@@ -1,14 +1,14 @@
 
-https://josef.codes/append-correlation-id-to-all-log-entries-in-asp-net-core/
-locks
-async operations with Task stuff
-events
-delegates
-asyncLocal
-SignalR
-Sagas Pattern
-EntityFramework
-https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/async-scenarios
+- https://josef.codes/append-correlation-id-to-all-log-entries-in-asp-net-core/
+- locks
+- async operations with Task stuff
+- events
+- explore delegates, in particular the way they work in async context
+- asyncLocal
+- SignalR
+- Sagas Pattern
+- EntityFramework
+- https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/async-scenarios
 
 ## Articles
 
