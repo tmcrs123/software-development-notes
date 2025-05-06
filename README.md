@@ -1,1 +1,1 @@
-My collection of notes on software development topics. test
+My collection of notes on software development topics.
