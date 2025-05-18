@@ -7,7 +7,7 @@ Rabbit is way of decoupling applications. Technically is an implementation of AM
 
 - Producer - Who produces the message and sends it to the queue
 - Consumer - Who listens to the queue and processes messages. It's also who acknowledges a message as been received
-- Queue - This is the buffer where messages are stored temporarily until they are retrieved by a consumer. Queues are by default LIFO.
+- Queue - This is the buffer where messages are stored temporarily until they are retrieved by a consumer. Queues are by default FIFO.
 - Exchange - This is the entity that routes messages. You can have more than one queue and it's the exchange job to route them to the appropriate queue based on a routing key. There are several types of exchanges:
 	- Direct: route messages with a specific key
 	- Fanout: route messages to all bound queues (like SNS)

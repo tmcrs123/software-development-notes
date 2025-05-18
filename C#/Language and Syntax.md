@@ -6,7 +6,7 @@
 | List<T>                         | Dynamic size, fast access                                                                   | Slower inserts, elements need to shift                    |
 | LinkedList                      | Efficient inserts/removes in the middle                                                     | High memory consumption, slower access                    |
 | SortedList<TKey, TValue>        | Keeps items sorted                                                                          | Slower insertions, needs to sort on insert                |
-| Dictionary                      | Fast Lookups                                                                                | Higher memory consumption, needs to keep an index of keys |
+| Dictionary                      | Fast Lookups, doesn't allow key duplication                                                 | Higher memory consumption, needs to keep an index of keys |
 | Sorted Dictionary<TKey, TValue> | Self-balancing tree, better performance for frequent insertions/deletions than `SortedList` | More memory usage                                         |
 | Queue                           | FIFO                                                                                        | Sucks for random access (but why would you?)              |
 | Stack                           | LIFO                                                                                        | Sucks for random access (but why would you?)              |
@@ -94,7 +94,7 @@ Note: a delegate **is not** a lambda! A lambda is an anonymous function. Is the 
 
 # IDisposable
 
-It's an interface that exposes a mechanism to releasing unmanaged resources.
+It's an interface that exposes a mechanism for releasing unmanaged resources.
 
 What is an unmanaged resource? Anything not picked up by garbage collection. For example:
 

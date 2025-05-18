@@ -18,7 +18,16 @@ A delegate is defined like this (consider an alarm clock as an example):
 public delegate void AlarmHandler(string message);
 ```
 
-This syntax means the property - `AlarmHandler` - is a specification for a function that takes a string as an argument and returns nothing. 
+This syntax means the property - `AlarmHandler` - is a specification for a function that takes a string as an argument and returns nothing. You can think of this as a type, this is essentially just different syntax to do something this:
+```js
+//in Typescript world
+
+type alarmHandler = (message: string) => void 
+type Sum = (arg0: number, arg1: number) => number;
+```
+
+
+```
 
 They weirdness here comes from the fact that you cannot simply assign a function to the delegate. The following won't compile:
 
@@ -34,7 +43,7 @@ The point is you have now defined a structure for a function that you can provid
 
 ## Using `delegates` in `event`
 
-When you are working with events in any language, you also need to specify what happens when that event is triggered.
+When you are working with events in any language, you need to specify what happens when that event is triggered.
 
 This of course differs from language to language and in some of them the syntax makes more sense than in C# (think of `.subscribe()` or `(click)=doThings())`  in Angular). Usually there's a split between the event being fired and the code that runs when the event is fired (think callbacks here).
 

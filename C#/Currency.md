@@ -1,6 +1,10 @@
 # What type should you use for money?
 
 Decimal, higher precision, better for financial calculations.
+
+f - Float
+m - deciMal
+d - Double
 # Common Operations
 ## Converting a string to currency
 
