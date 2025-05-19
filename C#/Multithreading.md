@@ -282,10 +282,332 @@ Note: There are 2 classes for these types of lock: `ReaderWriterLockSlim` and `R
 
 ## Semaphore
 
-Semaphores are not necessarilly a way of synchronizing threads. Rather, they are a way of limiting how many threads are allowed to be executed at a given time.
+Semaphores are not necessarily a way of synchronizing threads. Rather, they are a way of limiting how many threads are allowed to be executed at a given time.
 
 A use case for this would be a database connection pool. Imagine you have a connection pool of 10 connections and you cannot go over that limit. A semaphore would be a good use case here because it would allow you to limit the number of threads that can actually get a connection from the connection pool.
 
 Similarly to Mutex, Semaphores can be local (meaning they only span across one process) or they can be global, thus spanning across multiple processes.
 
-note: again there are 2 classes for semaphores: `SemaphoreSlim` and `Semaphore`. Use `SemaphoreSlim` for local only semaphores and `Semaphore` for global (in fact only the `Semaphore` class has the "name" property)
+note: again there are 2 classes for semaphores: `SemaphoreSlim` and `Semaphore`. Use `SemaphoreSlim` for local only semaphores and `Semaphore` for global (in fact only the `Semaphore` class has the "name" property).
+
+Here's a simple example of using a semaphore:
+
+```C#
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        SemaphoreSlim semaphore = new SemaphoreSlim(3);
+
+        Thread[] threads = new Thread[10];
+
+        threads = [
+            new Thread(LongRunningOperation),
+            new Thread(LongRunningOperation),
+            new Thread(LongRunningOperation),
+            new Thread(LongRunningOperation),
+            new Thread(LongRunningOperation),
+            new Thread(LongRunningOperation),
+            new Thread(LongRunningOperation),
+            new Thread(LongRunningOperation),
+            new Thread(LongRunningOperation)
+            ];
+
+        foreach (var t in threads)
+        {
+            t.Start();
+        }
+
+        foreach (var t in threads)
+        {
+            t.Join();
+        }
+
+        Console.WriteLine("All threads finished, disposing of semaphore...");
+
+        semaphore.Dispose();
+
+        void LongRunningOperation()
+        {
+            semaphore.Wait();
+            Console.WriteLine($"Thread ${Thread.CurrentThread.ManagedThreadId} entered the semaphore. There are {semaphore.CurrentCount} threads in the semaphore.");
+
+            try
+            {
+                Thread.Sleep(5000);
+            }
+            finally
+            {
+                var previousCount = semaphore.Release();
+                Console.WriteLine($"Thread ${Thread.CurrentThread.ManagedThreadId} released by the semaphore. There are {previousCount} threads in the semaphore.");
+            }
+        }
+    }
+}
+```
+
+## Thread Interaction
+
+### AutoResetEvent
+
+`AutoResetEvent` works like a signalling mechanism. Think of the analogy of a policeman signalling traffic to move.
+
+`AutoResetEvent` has an initial value of type boolean which signals if the event is signaled or non-signaled. 
+
+The way this works is once the `AutoResetEvent` signals (changes from `true` to `false`), any threads that are waiting on that signal are notified to do their work BUT as soon as one of the threads receives the signal, the signal is automatically reset back to `false`.
+
+This means that only one thread will be able to act on that signal at any given time.
+
+The main implication of this behaviour is that it means the worker threads only start when the event goes from `false -> true` . 
+
+Consider the following example:
+
+```C#
+internal class Program
+{
+    static AutoResetEvent myEvent = new AutoResetEvent(false);
+    
+    static void Main(string[] args)
+    {
+
+        for (int i = 0; i < 3; i++)
+        {
+            Thread t = new Thread(Consumer);
+            t.Name = $"Consumer thread {i}";
+            Console.WriteLine($"{t.Name} listening...");
+            t.Start();
+        }
+
+        while (true)
+        {
+            var input = Console.ReadLine();
+
+            if(input == "g")
+            {
+                myEvent.Set();
+            }
+        }
+    }
+
+    static void Consumer()
+    {
+        while (true)
+        {
+            myEvent.WaitOne();
+
+            Console.WriteLine($"{Thread.CurrentThread.Name} got event, processing...");
+            Thread.Sleep(5000);
+            Console.WriteLine($"{Thread.CurrentThread.Name} finished processing...");
+        }
+    }
+}
+```
+
+In this case, the user can hammer the "g" key but if a worker thread is already executing work, any clicks that (re)set the signal from `true -> true`  are lost. It's only when on the worker threads finished (thus setting the event back to `false`) that inputs are going to be acted upon.
+
+## ManualResetEvent
+
+This works similarly to `AutoResetEvent` if the exception that you need to manage setting and resetting the event yourself. What this is allows is the behaviour of having multiple threads doing work at the same time unlike before.
+
+In terms of syntax it's pretty similar but now there's a slim version. An example:
+
+```C#
+ internal class Program
+ {
+     static ManualResetEventSlim m = new ManualResetEventSlim();
+     
+     static void Main(string[] args)
+     {
+
+         Console.WriteLine("Press enter to release all threads");
+         Console.ReadLine();
+
+         for (int i = 0; i < 3; i++)
+         {
+             Thread t = new Thread(DoWork);
+             t.Start();
+         }
+
+         m.Set();
+
+         Console.ReadLine();
+     }
+
+     static void DoWork()
+     {
+         m.Wait();
+
+         Console.WriteLine($"{Thread.CurrentThread.Name} doing work");
+         Thread.Sleep(2000);
+         Console.WriteLine($"{Thread.CurrentThread.Name} finished doing work");
+     }
+ }
+```
+
+### Important caveat on syntax
+
+The `AutoResetEvent` and `ManualResetEvent` rely on the concept of the event being "signaled". So what does "signaled" mean? It means the event is set to `true`.  It **does not** mean "the event has changed from true to false".
+
+Consider the following code below. In this scenario, the `Wait()` line won't be blocked because the event is signaled to true (it's instantiated as a signaled event)
+
+```C#
+
+static ManualResetEventSlim produceEvent = new ManualResetEventSlim(true);
+
+(...)
+
+ static void Produce()
+ {
+     while (true)
+     {
+         produceEvent.Wait(); // THIS DOES NOT BLOCK HERE BECAUSE THE EVENT IS INSTANTIATED AS TRUE
+         DoThings();
+     }
+}
+```
+
+Here's a full example of a producer consumer scenario where the initial state of the event matters.
+
+```C#
+ internal class Program
+ {
+     static Queue<int> foodQueue = new Queue<int>();
+
+     static ManualResetEventSlim produceEvent = new ManualResetEventSlim(true);
+     static ManualResetEventSlim consumeEvent = new ManualResetEventSlim(false);
+     static object consumeLock = new object();
+
+     static void Main(string[] args)
+     {
+         Console.WriteLine("Animal Farm");
+
+         for (int i = 0; i < 3; i++)
+         {
+             new Thread(Consume).Start();
+         }
+
+         Produce();
+     }
+
+     static void Produce()
+     {
+         while (true)
+         {
+             produceEvent.Wait();
+             produceEvent.Reset();
+
+             Console.WriteLine("Press p to produce");
+             var input = Console.ReadLine();
+
+             if (input == "p")
+             {
+                 Console.WriteLine("Farmer adds more food");
+
+                 for (int i = 0; i < 10; i++)
+                 {
+                     foodQueue.Enqueue(i);
+                 }
+
+                 Console.WriteLine("Food is full");
+                 consumeEvent.Set();
+             }
+         }
+     }
+
+     static void Consume()
+     {
+         while (true)
+         {
+             consumeEvent.Wait();
+             consumeEvent.Reset();
+
+             if (foodQueue.Count == 0) continue;
+
+             lock (consumeLock)
+             {
+                 while (foodQueue.TryDequeue(out var result))
+                 {
+                     Console.WriteLine($"Thread {Thread.CurrentThread.ManagedThreadId} consumed {result}");
+                 }
+             }
+
+             Console.WriteLine("No more food left in the queue");
+             produceEvent.Set();
+         }
+     }
+ }
+```
+
+
+## Thread Affinity
+
+Thread affinity means binding a task or operation to a specific thread. This means that some operations need to be perform by the thread they are bound to otherwise an exception may be thrown. This happens mostly when doing UI because re-rendering needs to happen on the UI thread so you may need to sync things if you are doing multithreaded UI.
+
+## Thread Safety
+
+This just means "precautions have been put in place to allow multiple threads to access resource at the same time without corrupting data or creating unexpected results".
+
+## Nested Locks and Deadlocks
+
+Deadlocks happen when you have a thread holding on to a lock (but not releasing) another thread needs and vice versa.
+
+Imagine an example where you're trying to process Users and Orders (something like user has a order AND order has a user). This could look something like this:
+
+```C#
+namespace Deadlocks
+{
+    internal class Program
+    {
+        static object userLock = new object();
+        static object orderLock = new object();
+
+        static void Main(string[] args)
+        {
+            Thread orderThread = new Thread(ProcessOrder);
+            orderThread.Start();
+
+            lock (userLock)
+            {
+                Console.WriteLine("Main thread - obtained user lock");
+                DoUserThings();
+
+                lock (orderLock)
+                {
+                    Console.WriteLine("Main thread - obtained order lock");
+                    DoOrderThings();
+                }
+            }
+
+            Console.WriteLine("Program finished");
+            Console.ReadLine();
+
+        }
+
+        static void ProcessOrder()
+        {
+            lock (orderLock)
+            {
+                Console.WriteLine("Worker thread - Process order obtained order lock");
+                DoOrderThings();
+
+                lock (userLock)
+                {
+                    Console.WriteLine("Worker thread - Process order obtained user lock");
+                    DoUserThings();
+                }
+            }
+        }
+
+        static void DoUserThings()
+        {
+            Thread.Sleep(1000);
+        }
+
+        static void DoOrderThings()
+        {
+            Thread.Sleep(2000);
+        }
+    }
+}
+```
+
