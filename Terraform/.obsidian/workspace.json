@@ -1,99 +1,41 @@
 {
   "main": {
-    "id": "26ed915e431bca9b",
+    "id": "815d036a4f9c1e9b",
     "type": "split",
     "children": [
       {
-        "id": "7e0ea6714df844e2",
+        "id": "568addb5fbb161f1",
         "type": "tabs",
         "children": [
           {
-            "id": "51b506f4eb647659",
+            "id": "cab9380f35d3c0d9",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "LINQ.md",
+                "file": "Terraform.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "LINQ"
-            }
-          },
-          {
-            "id": "4fb3ea87ab0ddcb8",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Language and Syntax.md",
-                "mode": "source",
-                "source": false,
-                "backlinks": false
-              },
-              "icon": "lucide-file",
-              "title": "Language and Syntax"
-            }
-          },
-          {
-            "id": "b22944b04a5e47f4",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Entity Framework Core.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Entity Framework Core"
-            }
-          },
-          {
-            "id": "36c01a3e7a7f0a69",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Dates.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Dates"
-            }
-          },
-          {
-            "id": "d097ec91de5f3b20",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Events.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Events"
+              "title": "Terraform"
             }
           }
-        ],
-        "currentTab": 3
+        ]
       }
     ],
     "direction": "vertical"
   },
   "left": {
-    "id": "15b82d214ad331a9",
+    "id": "1d4d25faeb93408b",
     "type": "split",
     "children": [
       {
-        "id": "317e2af1c7758176",
+        "id": "bed228c0138b8c93",
         "type": "tabs",
         "children": [
           {
-            "id": "9ca7fc7ae7d47f06",
+            "id": "70c1259d9aa85ff6",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -106,7 +48,7 @@
             }
           },
           {
-            "id": "988c775b56343d10",
+            "id": "d970c62b99debb55",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -123,7 +65,7 @@
             }
           },
           {
-            "id": "3cface99757bde2f",
+            "id": "70957acdb6482386",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -139,20 +81,20 @@
     "width": 300
   },
   "right": {
-    "id": "dbf7733525feb742",
+    "id": "f57859cda8a30156",
     "type": "split",
     "children": [
       {
-        "id": "f3c975d556d79662",
+        "id": "2f6f6bc83e4ba5fc",
         "type": "tabs",
         "children": [
           {
-            "id": "59a34b9eadd6db67",
+            "id": "bb9c3188894a9743",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Access Modifiers.md",
+                "file": "Terraform.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -162,25 +104,25 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Access Modifiers"
+              "title": "Backlinks for Terraform"
             }
           },
           {
-            "id": "85a191b8970ef5d9",
+            "id": "343365472d67ed09",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Access Modifiers.md",
+                "file": "Terraform.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from Access Modifiers"
+              "title": "Outgoing links from Terraform"
             }
           },
           {
-            "id": "b6e131c3924b2026",
+            "id": "92b3274fcc82886b",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -195,18 +137,18 @@
             }
           },
           {
-            "id": "6633866ea561030a",
+            "id": "11dddc6b8e6f6470",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "CSharp.md",
+                "file": "Terraform.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of CSharp"
+              "title": "Outline of Terraform"
             }
           }
         ]
@@ -226,31 +168,8 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "36c01a3e7a7f0a69",
+  "active": "cab9380f35d3c0d9",
   "lastOpenFiles": [
-    "Currency.md",
-    "cloud-atlas.md",
-    "By reference Vs By value.md",
-    "AI, AI in Dotnet.md",
-    "Language and Syntax.md",
-    "Entity Framework Core.md",
-    "Dotnet/Testing.md",
-    "Dotnet/Notes.md",
-    "Events.md",
-    "Dates.md",
-    "Access Modifiers.md",
-    "Things to try.md",
-    "LINQ.md",
-    "Multithreading.md",
-    "OOP.md",
-    "RabbitMq Overview.md",
-    "Mid-to-Advanced Roadmap.md",
-    "Dotnet/Pasted image 20250413161132.png",
-    "JSON and XML Serialization.md",
-    "Waters.md",
-    "Waters 1.md",
-    "Dotnet",
-    "2025-04-04.md",
-    "Untitled.canvas"
+    "Terraform.md"
   ]
 }

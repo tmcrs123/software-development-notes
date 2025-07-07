@@ -195,6 +195,3 @@ This is similar to Service filters with the exception that these filters are res
 ## Type Filters Vs Service Filters - When to use which?
 
 In terms of performance they are more or less the same. They are not the same in terms of reusability. Because you can pass constructor arguments to TypeFilters you risk sprinkling logic all over the place  by passing different parameters. Is this a problem? Well 🤷‍♂️.
-
-
-# that Note about the filter where you cannot infer the T 

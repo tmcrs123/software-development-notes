@@ -611,3 +611,448 @@ namespace Deadlocks
 }
 ```
 
+---
+## Misc topics on Threads
+
+### Thread states
+
+Threads have different states. The enum is documented [here](https://learn.microsoft.com/en-us/dotnet/api/system.threading.threadstate?view=net-9.0). 
+
+The important things to remember is that the first state of a thread is `unstarted` meaning `start()` as not being invoked on the thread. It's also important to note that a thread that is being waited on your where `sleep()` has been called, is in a  `WaitSleepJoin` state rather than `Stopped`. 
+
+There is an important distinction between `Stopped` and `Aborted` states. A `Stopped` thread is a thread that has finished it's processing and has exited gracefully. A thread cannot be stopped directly, there is no `Thread.Stop()`. The way to cancel it is via a `CancellationToken()`. 
+An `Abort` thread is a thread that has been aborted manually with `Thread.Abort()`. This is the old way of doing things and now is deprecated and should not be used.
+
+Here's how to use a cancellation token to stop a thread:
+
+```C#
+class Program
+{
+    static void Main()
+    {
+        var cts = new CancellationTokenSource();
+
+        Thread t = new Thread(() => DoWork(cts.Token));
+        t.Start();
+
+        Console.WriteLine("Press Enter to stop thread...");
+        Console.ReadLine();
+        cts.Cancel(); // Signal the thread to stop
+        t.Join(); // Wait for thread to finish
+    }
+
+    static void DoWork(CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            Console.WriteLine("Working...");
+            Thread.Sleep(500); // Simulate work
+        }
+
+        Console.WriteLine("Thread exiting gracefully.");
+    }
+}
+```
+
+### Debugging multithreaded apps
+
+There are 2 useful windows in Visual Studio. Go to Debug -> Windows and select "Parallel Stacks" and "Threads"
+
+### Making a thread wait
+
+There are 3 ways of making a thread wait:
+
+ - `Thread.Sleep`
+ - `Thread.SpinWait`
+ - `SpinWait.SpinUntil`
+
+`Thread.Sleep` is the preferable one because it tells the scheduler to actually change the state of the thread from `Running` to `WaitSleepJoin` , thus allow CPU resources to be released for better performance.
+
+The other two are essentially ways of keeping the thread "spinning" (imagine a for loop up to a million here). The key difference here is that the state of the thread never changes, it just keeps running around in circles. This is worse for performance because the state of the thread is never changed (so always `Running`) and CPU resources are never released.
+
+### Returning results from a thread
+
+You cannot do this. This code does not work:
+
+```C#
+Thread t = new Thread(DoThings);
+var resul = t.start() //WRONG!
+```
+
+The only way to "return" something from a thread is be creating a variable and using the thread to set that variable.
+
+### Thread Pool
+
+The idea of thread pools is that creating threads on the fly is expensive. Also you end up in a (very remote) scenario where you exhaust all possible - imagine you have a server that creates a thread for every request and you get 1 million concurrent request.
+
+So a safer way of doing this is using a thread pool.
+
+A thread pool, as the name implies, is a pool of threads ready to be used when you need them.
+
+You can specify a minimum and a maximum. If the pool does not have enough threads to meet the minimum, when a new thread is request the thread pool will create it. If, on the other hand, the maximum number of threads has been meet and a new thread is needed, the thread pool will force the requester of the new thread to wait until a thread is available.
+
+Thread pools are a way of making sure your system never blows up in terms of processing.
+
+The syntax to use the `ThreadPool` is slightly different from using normal threads because the `QueueUserWorkItem` requires a delegate that complies with the `WaitCallback` delegate signature from C# . Here's an example:
+
+```C#
+ void Worker(object filename)
+ {
+     var res = GetOrderInsertForFile(filename.ToString());
+
+     lock (appendLock)
+     {
+         sb.Append(res);
+     }
+ }
+
+ThreadPool.QueueUserWorkItem(Worker, fileInfo);
+```
+
+### Exception handling in threads
+
+Whenever you spin up a new thread it gets it's own call stack, separate from the main thread. This means that if you thread throws an exception it never bubbles up to the main thread. Any exceptions that your thread throws need to be handled inside that thread. For example, the code below does not catch the exception thrown from the thread.
+
+```C#
+static void Main(string[] args)
+{
+    void Work()
+    {
+        throw new InvalidOperationException("Thrown for thread");
+    }
+
+    try
+    {
+        Thread t = new Thread(Work);
+        t.Start();
+        t.Join();
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine("Caught exception in main thread"); // this will never be caught!
+    }
+}
+```
+
+The correct way to catch an exception in a thread is like this:
+
+```C#
+ static void Main(string[] args)
+ {
+     void Work()
+     {
+         try
+         {
+
+             throw new InvalidOperationException("Thrown for thread");
+         }
+         catch (Exception e)
+         {
+
+             Console.WriteLine("Caught exception in thread");
+         }
+     }
+
+     try
+     {
+         Thread t = new Thread(Work);
+         t.Start();
+         t.Join();
+     }
+     catch (Exception e)
+     {
+         Console.WriteLine("Caught exception in main thread");
+     }
+ }
+```
+
+Note that even if you catch the exception in the thread and re-throw it, it's still not caught by the main thread.
+
+Also the behaviour is the same even if you have nested threads (other than the main thread). **Each thread has it's own call stack and you need to catch exceptions within the context of the thread. Period.**
+
+```C#
+ static void Main(string[] args)
+ {
+     void MoreWork()
+     {
+         throw new InvalidOperationException("Thrown for thread 2"); // This will NEVER be caught
+     }
+
+     void Work()
+     {
+         Thread t2 = new Thread(MoreWork);
+
+         try
+         {
+             t2.Start();
+         }
+         catch (Exception e)
+         {
+             Console.WriteLine($"Caught exception in thread 1: {e.Message}");
+         }
+     }
+
+     try
+     {
+         Thread t1 = new Thread(Work);
+         t1.Start();
+         t1.Join();
+     }
+     catch (Exception e)
+     {
+         Console.WriteLine($"Caught exception in main thread: {e.Message}");
+     }
+ }
+```
+
+But what if we really need to handle exceptions in a centralized way, regardless on which thread they are created? In that case the only way is to save the exception in a centralized resource and then process the exceptions (if any) when all the threads complete.
+
+```C#
+    static void Main(string[] args)
+    {
+        List<Exception> exceptions = new List<Exception>();
+        object exceptionsListLock = new object();
+        
+        void MoreWork()
+        {
+            try
+            {
+
+                throw new InvalidOperationException("Thrown for thread 2");
+            }
+            catch (Exception e)
+            {
+                lock (exceptionsListLock)
+                {
+                    exceptions.Add(e);
+                }
+            }
+        }
+
+        void Work()
+        {
+            Thread t2 = new Thread(MoreWork);
+
+            try
+            {
+                t2.Start();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Caught exception in thread 1: {e.Message}"); //Uncaught
+            }
+
+            t2.Join();
+        }
+
+        try
+        {
+            Thread t1 = new Thread(Work);
+            t1.Start();
+            t1.Join();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Caught exception in main thread: {e.Message}"); //Uncaught
+        }
+
+        foreach (var e in exceptions)
+        {
+            Console.WriteLine($"Manually handled exception: {e.Message}"); //This works!
+        }
+    }
+}
+```
+
+---
+
+# Task Based Async Programming
+
+## Understanding the difference between multithreading and async programming
+
+The main difference is the emphasis of what you are trying to achieve.
+
+Multithreading implies the concept of "divide and conquer".  This is when you need to want to accomplish something quicker and you can speed up the process by doing things in parallel. A good example is the following: Imagine you need to build a database of users but you have user information split into 10 different csv files. If you do it all in the main thread you can only do one file at a time BUT if you start a thread per file one can read the files in parallel, thus building the database much quicker.
+
+Async programming on the other hand is not about "diving work to do things faster". Instead it's about offloading long running tasks that may not necessarily be CPU intensive. Classic example where is when you need to wait for a database call. You are just sitting there waiting for data to come back. But if you don't offload that task your program is stuck waiting.
+
+Things get a bit blurred because async programming uses multithreading under the hood. When you offload an async task you are essentially putting that long running computation/wait in a different thread. But, again, the emphasis is different!
+
+#### Syntax
+
+Very similar syntax to `Thread`: 
+
+```C#
+Task t = new Task(() =>
+{
+    Thread.Sleep(1000);
+    Console.WriteLine("Bananas");
+});
+
+t.Start();
+t.Wait();
+```
+
+Alternatively you can do the following, which is the same as declaring a `Task` and calling `Start` on the task:
+
+```C#
+Task t2 = Task.Run(() =>
+{
+    Thread.Sleep(2000);
+    Console.WriteLine("Bananas 2");
+});
+
+t2.Wait();
+```
+
+## Why use Tasks Vs Threads?
+
+Tasks are an abstraction around threads that have some benefits. Namely:
+- Tasks use the thread pool by default
+- You can return values from a Task
+- Better exception handling
+- Async/Await - closer to writing sync code
+- Async/Await - easier context management, no thread affinity problems
+
+## Task Api
+
+### Wait, WaitAll and Result
+
+All these methods do what the name says. What needs to be mentioned here is that all these methods are *blocking*. Even `Task.Result`.
+
+For example this code is blocked until a result from the Task is available.
+
+```C#
+Task<int> t = new Task<int>(() =>
+{
+    Task.Delay(2000);
+    return 42;
+});
+
+Console.WriteLine(t.Result); // blocked for 2 seconds
+```
+
+### ContinueWith
+
+`ContinueWith` is like `.then` promises in JavaScript. The only aspect where it's slightly different is that in JavaScript the argument passed to the `.then` callback is the value of the previous promise whereas with C#, the argument is the actual promise. So you need to call `.Result` if you want to get the return value out of it. 
+
+Here's an example:
+
+```C#
+Console.WriteLine("Program running...");
+
+Task<int> randomNumberTask = Task.Run(() =>
+{
+    Thread.Sleep(5000);
+    return 2;
+});
+
+randomNumberTask.ContinueWith((randomNumber) =>
+{
+    Console.WriteLine(randomNumber.Result * 10);
+});
+
+while (true)
+{
+    var input = Console.ReadLine();
+    Console.WriteLine($"Main thread is not blocked, user input: {input}");
+}
+```
+
+A side note: one of the things I tried before getting to the code above was this:
+
+```C#
+Console.WriteLine("Program running...");
+
+Task<int> randomNumberTask = Task.Run(() =>
+{
+    Task.Delay(5000)
+    return 2;
+});
+
+randomNumberTask.ContinueWith((randomNumber) =>
+{
+    Console.WriteLine(randomNumber.Result * 10);
+});
+
+while (true)
+{
+    var input = Console.ReadLine();
+    Console.WriteLine($"Main thread is not blocked, user input: {input}");
+}
+```
+
+However, using `Task.Delay()` I immediately got the output of the `ContinueWith` promise (20). This is because `Task.Delay()` fires a task that will be resolved in X seconds on *a different thread* . So if you want this to hang there for X seconds, you need to use `async/await`.
+
+### Unwrap
+
+What happens if you chain more than one Task like this?
+
+```C#
+Task<int> randomNumberTask = Task.Run(() =>
+{
+    Thread.Sleep(1000);
+    return 2;
+});
+
+Task<string> randomStringTask = Task.Run(() =>
+{
+    Thread.Sleep(1000);
+    return "bananas";
+});
+
+Task<bool> boolTask = Task.Run(() =>
+{
+    Thread.Sleep(1000);
+    return true;
+});
+
+var whatIsThis = randomNumberTask.ContinueWith((randomStringTask) => randomStringTask).ContinueWith(boolTask => boolTask);
+```
+
+Unlike Javascript where if you chain promises (like this)...
+
+```javascript
+var p1 = new Promise<string>(resolve => resolve("bananas"))
+
+var p2 = new Promise<number>(resolve => resolve(1))
+
+var p3 = new Promise<Boolean>(resolve => resolve(false))
+
+var t = p1.then(() => p2).then(() => p3); //Promise<boolean>
+```
+
+...you get the last thing you return (in this case `Promise<boolean>`) in .NET you get nested task.
+
+So this `var whatIsThis = randomNumberTask.ContinueWith((randomStringTask) => randomStringTask).ContinueWith(boolTask => boolTask);` will be a `Task<Task<Task<int>>>>`
+
+This is not very useful because if you wanted to get the last value you'd still need to split into a variable and `await` 3 times.
+
+However, there's a way around this using the `Unwrap` method. What `Unwrap` does is to take the return value of the task and pass it along rather than chaining the whole task. 
+
+```C#
+
+            Task<int> randomNumberTask = Task.Run(() =>
+            {
+                Thread.Sleep(1000);
+                return 2;
+            });
+
+            Task<string> randomStringTask = Task.Run(() =>
+            {
+                Thread.Sleep(1000);
+                return "bananas";
+            });
+
+            Task<bool> boolTask = Task.Run(() =>
+            {
+                Thread.Sleep(1000);
+                return true;
+            });
+
+            var whatIsThis = randomNumberTask
+                .ContinueWith((randomStringTask) => randomStringTask).Unwrap()
+                .ContinueWith(boolTask => boolTask).Unwrap();
+```
+ 
+So, in this scenario, `whatIsThis` is going to be a `Task<int>`.

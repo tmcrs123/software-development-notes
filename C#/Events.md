@@ -18,15 +18,12 @@ A delegate is defined like this (consider an alarm clock as an example):
 public delegate void AlarmHandler(string message);
 ```
 
-This syntax means the property - `AlarmHandler` - is a specification for a function that takes a string as an argument and returns nothing. You can think of this as a type, this is essentially just different syntax to do something this:
+This syntax means the property - `AlarmHandler` - is a specification for a function that takes a string as an argument and returns nothing. You can think of this as a type, this is essentially just different syntax for something this:
 ```js
 //in Typescript world
 
 type alarmHandler = (message: string) => void 
 type Sum = (arg0: number, arg1: number) => number;
-```
-
-
 ```
 
 They weirdness here comes from the fact that you cannot simply assign a function to the delegate. The following won't compile:

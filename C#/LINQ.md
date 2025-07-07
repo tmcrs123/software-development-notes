@@ -48,6 +48,30 @@ foreach (var ageKey in grouped)
 }
 ```
 
+Here's a better example of what `GroupBy` does step by step:
+
+```C#
+var list = new List<(string sapNumber, string filePath)>
+{
+    ("A1", "file1"),
+    ("A2", "file2"),
+    ("A1", "file3"),
+    ("A3", "file4"),
+    ("A2", "file5"),
+    ("A4", "file6")
+};
+
+var groups = list.GroupBy(t => t.sapNumber); 
+
+// the line above turns the tupples into something like this:
+[
+  Group "A1": [("A1", "file1"), ("A1", "file3")],
+  Group "A2": [("A2", "file2"), ("A2", "file5")],
+  Group "A3": [("A3", "file4")],
+  Group "A4": [("A4", "file6")]
+]
+```
+
 # Sets
 
 3 things here:

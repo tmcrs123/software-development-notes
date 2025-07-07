@@ -168,7 +168,11 @@ This structure is what allows C# to transform this into a SQL query.
 
 # IQueryable
 
-You can think of  ```IQueryable``` as a bridge between the LINQ syntax and some underlying ORM or database engine. The IQueryable interface is what any provider needs to implement if they want to integrate LINQ with their data source.  `IQueryable` has the same set of LINQ operators but each provider is free to implement them how they wish. Under the hood, `Iqueryable` uses expression trees because it needs to be able to convert whatever you give into ORM/Database language. Remember that `IQueryable` never returns a value until the query is executed (essentially when you do stuff on a `IQueryable` like for example `Select(), Where(), Aggregate()` you are just "building" your query. You only get the result back once you execute the query)
+You can think of  ```IQueryable``` as a bridge between the LINQ syntax and some underlying ORM or database engine. The `IQueryable` interface is what any provider needs to implement if they want to integrate LINQ with their data source.  `IQueryable` has the same set of LINQ operators but each provider is free to implement them how they wish. Under the hood, `Iqueryable` uses expression trees because it needs to be able to convert whatever you give into ORM/Database language. Remember that `IQueryable` never returns a value until the query is executed (essentially when you do stuff on a `IQueryable` like for example `Select(), Where(), Aggregate()` you are just "building" your query. You only get the result back once you execute the query).
+
+## `ICollection` vs `IEnumerable`
+
+Both are a way of working with collections. The difference is `IEnumerable` is a read-only interface. You can iterate over the data set but you cannot do things like count, add or remove items, etc. `ICollection` on the other hand is fully featured, meaning you can do more things like counting or adding/removing. `IEnumerable` is lightweight, `ICollection` is heavier because it's has more features. Both support LINQ
 
 # Tasks vs Value Tasks
 
